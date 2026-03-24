@@ -1,0 +1,352 @@
+import React, { useState, useEffect } from 'react';
+import { RefreshCw, Info, CheckCircle2, AlertCircle, Droplet, FlaskConical, MousePointer2 } from 'lucide-react';
+
+// --- CSS Animations ---
+const styles = `
+  @keyframes bubble-rise {
+    0% { transform: translateY(0) scale(0.8); opacity: 0; }
+    20% { opacity: 1; }
+    100% { transform: translateY(-120px) scale(1.5); opacity: 0; }
+  }
+  .animate-bubble {
+    animation: bubble-rise linear infinite;
+  }
+  @keyframes fade-in-down {
+    0% { transform: translateY(-20px); opacity: 0; }
+    100% { transform: translateY(0); opacity: 1; }
+  }
+  .animate-fade-in-down {
+    animation: fade-in-down 0.6s ease-out forwards;
+  }
+  .glass-effect {
+    background: rgba(255, 255, 255, 0.15);
+    backdrop-filter: blur(4px);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+  }
+`;
+
+// --- Custom SVG Components cho Hóa chất & Dụng cụ ---
+const SvgTube = ({ className }) => (
+  <svg viewBox="0 0 40 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 5 V 85 A 10 10 0 0 0 30 85 V 5" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round"/>
+    <path d="M5 5 H 35" stroke="#94a3b8" strokeWidth="3" strokeLinecap="round"/>
+  </svg>
+);
+
+const SvgBottle = ({ className }) => (
+  <svg viewBox="0 0 60 100" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M20 5 H 40 M25 5 V 25 L 10 50 V 90 A 5 5 0 0 0 15 95 H 45 A 5 5 0 0 0 50 90 V 50 L 35 25 V 5" stroke="#64748b" strokeWidth="3" fill="#f8fafc"/>
+    <path d="M15 60 H 45 V 90 H 15 Z" fill="#e0f2fe"/>
+    <text x="30" y="80" textAnchor="middle" fill="#0369a1" fontSize="14" fontWeight="bold" fontFamily="sans-serif">HCl</text>
+  </svg>
+);
+
+const SvgIron = ({ className }) => (
+  <svg viewBox="0 0 40 40" className={className} fill="none" xmlns="http://www.w3.org/2000/svg">
+    <path d="M10 20 L 15 10 L 28 12 L 32 25 L 20 32 Z" fill="#475569" stroke="#334155" strokeWidth="2"/>
+    <path d="M15 15 L 20 20 M25 18 L 22 25" stroke="#94a3b8" strokeWidth="1.5" strokeLinecap="round"/>
+  </svg>
+);
+
+// --- Component Bọt khí ---
+const Bubbles = () => {
+  return (
+    <div className="absolute bottom-4 left-0 w-full h-full overflow-hidden pointer-events-none">
+      {[...Array(25)].map((_, i) => (
+        <div
+          key={i}
+          className="absolute bg-white rounded-full animate-bubble"
+          style={{
+            left: `${Math.random() * 60 + 20}%`,
+            bottom: `0%`,
+            width: `${Math.random() * 4 + 2}px`,
+            height: `${Math.random() * 4 + 2}px`,
+            animationDelay: `${Math.random() * 2}s`,
+            animationDuration: `${Math.random() * 1.5 + 1}s`
+          }}
+        />
+      ))}
+    </div>
+  );
+};
+
+export default function App() {
+  // State quản lý tiến trình thí nghiệm
+  const [hasTube, setHasTube] = useState(false);
+  const [hasHCl, setHasHCl] = useState(false);
+  const [hasFe, setHasFe] = useState(false);
+  const [isReacting, setIsReacting] = useState(false);
+  const [message, setMessage] = useState({ text: "Hãy bắt đầu bằng cách kéo ống nghiệm vào giá đỡ.", type: "info" });
+  
+  // Hiệu ứng bắt đầu phản ứng
+  useEffect(() => {
+    if (hasHCl && hasFe) {
+      setIsReacting(true);
+      setMessage({ 
+        text: "Phản ứng đang xảy ra! Xuất hiện bọt khí H₂ và dung dịch chuyển dần sang màu lục nhạt của FeCl₂.", 
+        type: "success" 
+      });
+    }
+  }, [hasHCl, hasFe]);
+
+  // Xử lý tương tác (Kéo thả hoặc Click)
+  const handleInteraction = (itemId) => {
+    if (itemId === 'tube') {
+      if (!hasTube) {
+        setHasTube(true);
+        setMessage({ text: "Đã đặt ống nghiệm. Tiếp theo, hãy cho dung dịch HCl vào.", type: "info" });
+      } else {
+        setMessage({ text: "Ống nghiệm đã có trên bàn rồi.", type: "warning" });
+      }
+    } else if (itemId === 'hcl') {
+      if (!hasTube) {
+        setMessage({ text: "Bạn cần đặt ống nghiệm ra bàn trước!", type: "warning" });
+        return;
+      }
+      if (hasHCl) {
+        setMessage({ text: "Đã có đủ HCl trong ống nghiệm.", type: "warning" });
+        return;
+      }
+      setHasHCl(true);
+      if (!hasFe) {
+        setMessage({ text: "Đã thêm HCl. Bây giờ hãy thả mẩu sắt (Fe) vào.", type: "info" });
+      }
+    } else if (itemId === 'fe') {
+      if (!hasTube) {
+        setMessage({ text: "Bạn cần đặt ống nghiệm ra bàn trước!", type: "warning" });
+        return;
+      }
+      if (hasFe) {
+        setMessage({ text: "Đã có Fe trong ống nghiệm.", type: "warning" });
+        return;
+      }
+      setHasFe(true);
+      if (!hasHCl) {
+        setMessage({ text: "Đã thả Fe. Cần thêm dung dịch HCl để phản ứng xảy ra.", type: "info" });
+      }
+    }
+  };
+
+  // Drag & Drop handlers
+  const onDragStart = (e, id) => {
+    e.dataTransfer.setData('itemId', id);
+  };
+
+  const onDragOver = (e) => {
+    e.preventDefault(); // Cho phép thả
+  };
+
+  const onDrop = (e) => {
+    e.preventDefault();
+    const itemId = e.dataTransfer.getData('itemId');
+    if (itemId) handleInteraction(itemId);
+  };
+
+  const resetExperiment = () => {
+    setHasTube(false);
+    setHasHCl(false);
+    setHasFe(false);
+    setIsReacting(false);
+    setMessage({ text: "Đã làm lại thí nghiệm. Kéo thả ống nghiệm vào giá đỡ để bắt đầu.", type: "info" });
+  };
+
+  // Danh sách dụng cụ
+  const tools = [
+    { id: 'tube', name: 'Ống nghiệm', icon: <SvgTube className="w-12 h-12" />, desc: 'Ống nghiệm thủy tinh sạch.' },
+    { id: 'hcl', name: 'Dung dịch HCl', icon: <SvgBottle className="w-12 h-12" />, desc: 'Axit Clohidric loãng.' },
+    { id: 'fe', name: 'Mẩu sắt (Fe)', icon: <SvgIron className="w-12 h-12" />, desc: 'Sắt nguyên chất dạng mẩu nhỏ.' },
+  ];
+
+  return (
+    <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 font-sans text-slate-800 overflow-hidden">
+      <style>{styles}</style>
+
+      {/* CỘT TRÁI: Hướng dẫn - Lý thuyết */}
+      <div className="w-full md:w-1/4 lg:w-3/12 bg-white shadow-xl z-10 flex flex-col p-6 border-r border-slate-200 overflow-y-auto">
+        <div className="flex items-center gap-2 mb-6 text-blue-700">
+          <Info className="w-6 h-6" />
+          <h2 className="text-xl font-bold uppercase tracking-wide">Hướng dẫn</h2>
+        </div>
+
+        <div className="space-y-4 mb-8">
+          <h3 className="font-semibold text-slate-700">Các bước thực hiện:</h3>
+          <ul className="space-y-3">
+            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${hasTube ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+              <CheckCircle2 className={`w-5 h-5 mt-0.5 shrink-0 ${hasTube ? 'text-green-500' : 'text-slate-300'}`} />
+              <span>1. Chuẩn bị ống nghiệm và đặt lên giá đỡ.</span>
+            </li>
+            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${hasHCl ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+              <CheckCircle2 className={`w-5 h-5 mt-0.5 shrink-0 ${hasHCl ? 'text-green-500' : 'text-slate-300'}`} />
+              <span>2. Cho một ít dung dịch axit HCl vào ống nghiệm.</span>
+            </li>
+            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${hasFe ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+              <CheckCircle2 className={`w-5 h-5 mt-0.5 shrink-0 ${hasFe ? 'text-green-500' : 'text-slate-300'}`} />
+              <span>3. Thả một mẩu sắt (Fe) vào ống nghiệm.</span>
+            </li>
+            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${isReacting ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-slate-50'}`}>
+              <div className={`w-5 h-5 mt-0.5 rounded-full border-2 shrink-0 flex items-center justify-center ${isReacting ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300'}`}>
+                {isReacting && <span className="w-2 h-2 bg-white rounded-full"></span>}
+              </div>
+              <span>4. Quan sát hiện tượng xảy ra.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="mt-auto bg-amber-50 p-4 rounded-xl border border-amber-200">
+          <h3 className="font-bold text-amber-800 mb-2">Phương trình hóa học:</h3>
+          <div className="bg-white px-3 py-2 rounded-lg border border-amber-100 text-center text-lg font-mono font-bold text-slate-800 shadow-sm mb-3">
+            Fe + 2HCl → FeCl₂ + H₂↑
+          </div>
+          <div className="text-sm text-amber-700 space-y-1">
+            <p><strong>Hiện tượng:</strong></p>
+            <ul className="list-disc pl-5">
+              <li>Mẩu sắt tan dần.</li>
+              <li>Có bọt khí không màu (H₂) thoát ra.</li>
+              <li>Dung dịch chuyển sang màu lục nhạt (FeCl₂).</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      {/* CỘT GIỮA: Khu vực mô phỏng */}
+      <div className="w-full md:w-2/4 lg:w-6/12 flex flex-col relative bg-blue-50/50">
+        {/* Banner thông báo */}
+        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-11/12 max-w-md z-20">
+          <div className={`flex items-center gap-3 p-4 rounded-2xl shadow-lg border transition-all transform duration-300 ${
+            message.type === 'success' ? 'bg-green-100 border-green-300 text-green-800' :
+            message.type === 'warning' ? 'bg-orange-100 border-orange-300 text-orange-800' :
+            'bg-white border-blue-200 text-blue-800'
+          }`}>
+            {message.type === 'warning' ? <AlertCircle className="w-6 h-6 shrink-0" /> : <Info className="w-6 h-6 shrink-0" />}
+            <p className="font-medium">{message.text}</p>
+          </div>
+        </div>
+
+        {/* Nút Reset */}
+        <button 
+          onClick={resetExperiment}
+          className="absolute top-6 right-6 z-20 bg-white hover:bg-slate-100 text-slate-600 p-3 rounded-full shadow-md border border-slate-200 transition-all active:scale-95 flex items-center gap-2 group"
+          title="Làm lại thí nghiệm"
+        >
+          <RefreshCw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
+          <span className="hidden lg:inline font-medium pr-1">Làm lại</span>
+        </button>
+
+        {/* Phương trình hóa học nổi lên giữa màn hình khi phản ứng */}
+        {isReacting && (
+          <div className="absolute top-32 w-full flex justify-center z-30 pointer-events-none">
+            <div className="bg-white/95 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border-2 border-emerald-400 text-center animate-fade-in-down">
+              <span className="block text-sm text-emerald-600 font-bold mb-2 uppercase tracking-widest">Phương trình phản ứng</span>
+              <span className="text-2xl md:text-3xl font-mono font-bold text-slate-800">Fe + 2HCl → FeCl₂ + H₂↑</span>
+            </div>
+          </div>
+        )}
+
+        {/* Không gian bàn thí nghiệm */}
+        <div 
+          className="flex-1 relative flex items-end justify-center pb-[15vh]"
+          onDragOver={onDragOver}
+          onDrop={onDrop}
+        >
+          {/* Bàn */}
+          <div className="absolute bottom-0 w-full h-[25vh] bg-gradient-to-b from-slate-300 to-slate-400 border-t-8 border-slate-400 shadow-[inset_0_20px_20px_rgba(0,0,0,0.05)]"></div>
+
+          {/* Vùng tương tác & Giá đỡ */}
+          <div className="relative z-10 w-64 h-80 flex flex-col items-center justify-end">
+            
+            {/* Giá đỡ ống nghiệm (Luôn hiển thị) */}
+            <div className="absolute bottom-0 w-48 h-16 bg-amber-800 rounded-lg shadow-xl flex items-center justify-center border-t border-amber-700">
+              <div className="w-40 h-4 bg-amber-900 rounded-full opacity-50"></div>
+              {/* Cọc giữ ống */}
+              <div className="absolute bottom-16 w-4 h-24 bg-amber-800 rounded-t-sm border-r border-amber-900 -ml-12"></div>
+              <div className="absolute bottom-16 w-4 h-24 bg-amber-800 rounded-t-sm border-r border-amber-900 ml-12"></div>
+              <div className="absolute bottom-32 w-40 h-6 bg-amber-800 rounded-md shadow-md flex justify-center items-center">
+                <div className="w-12 h-12 bg-amber-900/50 rounded-full border-2 border-amber-900 shadow-inner"></div>
+              </div>
+            </div>
+
+            {/* Ống nghiệm */}
+            {hasTube && (
+              <div className="relative z-20 w-14 h-64 glass-effect rounded-b-full rounded-t-sm mb-4 flex flex-col justify-end overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.2)]">
+                {/* Miệng ống */}
+                <div className="absolute top-0 w-full h-3 bg-white/40 border-b border-white/50 rounded-t-sm"></div>
+                
+                {/* Dung dịch */}
+                <div className={`relative w-full transition-all duration-1000 ease-in-out flex flex-col justify-end
+                  ${hasHCl ? 'h-32' : 'h-0'} 
+                  ${isReacting ? 'bg-emerald-200/60' : 'bg-sky-100/40'}
+                `}>
+                  {/* Bề mặt dung dịch */}
+                  {hasHCl && <div className="absolute top-0 w-full h-2 bg-white/40 rounded-full transform -translate-y-1/2"></div>}
+                  
+                  {/* Bọt khí */}
+                  {isReacting && <Bubbles />}
+                  
+                  {/* Mẩu sắt */}
+                  {hasFe && (
+                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+                      <SvgIron className={`w-8 h-8 transition-all duration-[10000ms] ${isReacting ? 'scale-75 opacity-80' : ''}`} />
+                    </div>
+                  )}
+                </div>
+
+                {/* Phản chiếu ánh sáng trên ống nghiệm */}
+                <div className="absolute top-4 left-2 w-2 h-48 bg-white/30 rounded-full blur-[1px]"></div>
+              </div>
+            )}
+
+            {/* Hint thả ống nghiệm */}
+            {!hasTube && (
+              <div className="absolute z-30 bottom-24 w-12 h-48 border-4 border-dashed border-slate-400 rounded-b-full rounded-t-sm flex items-center justify-center animate-pulse">
+                <span className="text-slate-400 font-bold text-xl">+</span>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* CỘT PHẢI: Dụng cụ - Hóa chất */}
+      <div className="w-full md:w-1/4 lg:w-3/12 bg-white shadow-xl z-10 flex flex-col p-6 border-l border-slate-200">
+        <div className="flex items-center gap-2 mb-6 text-indigo-700">
+          <FlaskConical className="w-6 h-6" />
+          <h2 className="text-xl font-bold uppercase tracking-wide">Dụng cụ & Hóa chất</h2>
+        </div>
+        
+        <p className="text-sm text-slate-500 mb-6 flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
+          <MousePointer2 className="w-4 h-4 shrink-0" />
+          Kéo thả hoặc nhấn vào từng mục dưới đây để thực hiện thí nghiệm.
+        </p>
+
+        <div className="space-y-4">
+          {tools.map((tool) => (
+            <div 
+              key={tool.id}
+              draggable
+              onDragStart={(e) => onDragStart(e, tool.id)}
+              onClick={() => handleInteraction(tool.id)}
+              className="group relative flex items-center gap-4 p-4 bg-white border-2 border-slate-100 hover:border-indigo-300 rounded-2xl cursor-pointer hover:shadow-lg transition-all transform hover:-translate-y-1"
+            >
+              <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+                {tool.icon}
+              </div>
+              <div>
+                <h4 className="font-bold text-slate-800">{tool.name}</h4>
+                <p className="text-xs text-slate-500 mt-1">{tool.desc}</p>
+              </div>
+              
+              {/* Trạng thái đã sử dụng */}
+              {((tool.id === 'tube' && hasTube) || 
+                (tool.id === 'hcl' && hasHCl) || 
+                (tool.id === 'fe' && hasFe)) && (
+                <div className="absolute top-2 right-2 bg-green-100 text-green-600 rounded-full p-1">
+                  <CheckCircle2 className="w-4 h-4" />
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
