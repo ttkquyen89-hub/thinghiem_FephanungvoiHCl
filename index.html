@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { RefreshCw, Info, CheckCircle2, AlertCircle, Droplet, FlaskConical, MousePointer2 } from 'lucide-react';
+import { RefreshCw, Info, CheckCircle2, AlertCircle, Droplet, FlaskConical, MousePointer2, Touchpad } from 'lucide-react';
 
-// --- CSS Animations ---
+// --- CSS Animations & Mobile Utilities ---
 const styles = `
   @keyframes bubble-rise {
     0% { transform: translateY(0) scale(0.8); opacity: 0; }
@@ -23,6 +23,14 @@ const styles = `
     backdrop-filter: blur(4px);
     border: 2px solid rgba(255, 255, 255, 0.5);
     box-shadow: inset 0 0 15px rgba(255, 255, 255, 0.2);
+  }
+  /* Ẩn thanh cuộn cho danh sách vuốt ngang trên mobile */
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 `;
 
@@ -72,25 +80,22 @@ const Bubbles = () => {
 };
 
 export default function App() {
-  // State quản lý tiến trình thí nghiệm
   const [hasTube, setHasTube] = useState(false);
   const [hasHCl, setHasHCl] = useState(false);
   const [hasFe, setHasFe] = useState(false);
   const [isReacting, setIsReacting] = useState(false);
-  const [message, setMessage] = useState({ text: "Hãy bắt đầu bằng cách kéo ống nghiệm vào giá đỡ.", type: "info" });
+  const [message, setMessage] = useState({ text: "Chạm (hoặc kéo) ống nghiệm vào giá đỡ để bắt đầu.", type: "info" });
   
-  // Hiệu ứng bắt đầu phản ứng
   useEffect(() => {
     if (hasHCl && hasFe) {
       setIsReacting(true);
       setMessage({ 
-        text: "Phản ứng đang xảy ra! Xuất hiện bọt khí H₂ và dung dịch chuyển dần sang màu lục nhạt của FeCl₂.", 
+        text: "Phản ứng đang xảy ra! Xuất hiện bọt khí H₂ và dung dịch chuyển dần sang màu lục nhạt.", 
         type: "success" 
       });
     }
   }, [hasHCl, hasFe]);
 
-  // Xử lý tương tác (Kéo thả hoặc Click)
   const handleInteraction = (itemId) => {
     if (itemId === 'tube') {
       if (!hasTube) {
@@ -101,7 +106,7 @@ export default function App() {
       }
     } else if (itemId === 'hcl') {
       if (!hasTube) {
-        setMessage({ text: "Bạn cần đặt ống nghiệm ra bàn trước!", type: "warning" });
+        setMessage({ text: "Bạn cần chọn ống nghiệm ra bàn trước!", type: "warning" });
         return;
       }
       if (hasHCl) {
@@ -110,11 +115,11 @@ export default function App() {
       }
       setHasHCl(true);
       if (!hasFe) {
-        setMessage({ text: "Đã thêm HCl. Bây giờ hãy thả mẩu sắt (Fe) vào.", type: "info" });
+        setMessage({ text: "Đã thêm HCl. Bây giờ hãy chọn mẩu sắt (Fe) để thả vào.", type: "info" });
       }
     } else if (itemId === 'fe') {
       if (!hasTube) {
-        setMessage({ text: "Bạn cần đặt ống nghiệm ra bàn trước!", type: "warning" });
+        setMessage({ text: "Bạn cần chọn ống nghiệm ra bàn trước!", type: "warning" });
         return;
       }
       if (hasFe) {
@@ -128,13 +133,12 @@ export default function App() {
     }
   };
 
-  // Drag & Drop handlers
   const onDragStart = (e, id) => {
     e.dataTransfer.setData('itemId', id);
   };
 
   const onDragOver = (e) => {
-    e.preventDefault(); // Cho phép thả
+    e.preventDefault();
   };
 
   const onDrop = (e) => {
@@ -148,205 +152,200 @@ export default function App() {
     setHasHCl(false);
     setHasFe(false);
     setIsReacting(false);
-    setMessage({ text: "Đã làm lại thí nghiệm. Kéo thả ống nghiệm vào giá đỡ để bắt đầu.", type: "info" });
+    setMessage({ text: "Đã làm lại thí nghiệm. Chạm hoặc kéo ống nghiệm vào giá đỡ để bắt đầu.", type: "info" });
   };
 
-  // Danh sách dụng cụ
   const tools = [
-    { id: 'tube', name: 'Ống nghiệm', icon: <SvgTube className="w-12 h-12" />, desc: 'Ống nghiệm thủy tinh sạch.' },
-    { id: 'hcl', name: 'Dung dịch HCl', icon: <SvgBottle className="w-12 h-12" />, desc: 'Axit Clohidric loãng.' },
-    { id: 'fe', name: 'Mẩu sắt (Fe)', icon: <SvgIron className="w-12 h-12" />, desc: 'Sắt nguyên chất dạng mẩu nhỏ.' },
+    { id: 'tube', name: 'Ống nghiệm', icon: <SvgTube className="w-10 h-10 md:w-12 md:h-12" />, desc: 'Ống nghiệm sạch.' },
+    { id: 'hcl', name: 'Dung dịch HCl', icon: <SvgBottle className="w-10 h-10 md:w-12 md:h-12" />, desc: 'Axit loãng.' },
+    { id: 'fe', name: 'Mẩu sắt (Fe)', icon: <SvgIron className="w-10 h-10 md:w-12 md:h-12" />, desc: 'Sắt nguyên chất.' },
   ];
 
   return (
-    <div className="flex flex-col md:flex-row h-screen w-full bg-slate-50 font-sans text-slate-800 overflow-hidden">
+    // Đổi cấu trúc layout để responsive: 
+    // Mobile: cột dọc (Simulation -> Tools -> Guide) với scroll.
+    // Desktop: 3 cột ngang (Guide -> Simulation -> Tools).
+    <div className="flex flex-col md:flex-row h-[100dvh] w-full bg-slate-50 font-sans text-slate-800 overflow-x-hidden overflow-y-auto md:overflow-hidden">
       <style>{styles}</style>
 
-      {/* CỘT TRÁI: Hướng dẫn - Lý thuyết */}
-      <div className="w-full md:w-1/4 lg:w-3/12 bg-white shadow-xl z-10 flex flex-col p-6 border-r border-slate-200 overflow-y-auto">
-        <div className="flex items-center gap-2 mb-6 text-blue-700">
-          <Info className="w-6 h-6" />
-          <h2 className="text-xl font-bold uppercase tracking-wide">Hướng dẫn</h2>
-        </div>
-
-        <div className="space-y-4 mb-8">
-          <h3 className="font-semibold text-slate-700">Các bước thực hiện:</h3>
-          <ul className="space-y-3">
-            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${hasTube ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
-              <CheckCircle2 className={`w-5 h-5 mt-0.5 shrink-0 ${hasTube ? 'text-green-500' : 'text-slate-300'}`} />
-              <span>1. Chuẩn bị ống nghiệm và đặt lên giá đỡ.</span>
-            </li>
-            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${hasHCl ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
-              <CheckCircle2 className={`w-5 h-5 mt-0.5 shrink-0 ${hasHCl ? 'text-green-500' : 'text-slate-300'}`} />
-              <span>2. Cho một ít dung dịch axit HCl vào ống nghiệm.</span>
-            </li>
-            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${hasFe ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
-              <CheckCircle2 className={`w-5 h-5 mt-0.5 shrink-0 ${hasFe ? 'text-green-500' : 'text-slate-300'}`} />
-              <span>3. Thả một mẩu sắt (Fe) vào ống nghiệm.</span>
-            </li>
-            <li className={`flex items-start gap-3 p-2 rounded-lg transition-colors ${isReacting ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-slate-50'}`}>
-              <div className={`w-5 h-5 mt-0.5 rounded-full border-2 shrink-0 flex items-center justify-center ${isReacting ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300'}`}>
-                {isReacting && <span className="w-2 h-2 bg-white rounded-full"></span>}
-              </div>
-              <span>4. Quan sát hiện tượng xảy ra.</span>
-            </li>
-          </ul>
-        </div>
-
-        <div className="mt-auto bg-amber-50 p-4 rounded-xl border border-amber-200">
-          <h3 className="font-bold text-amber-800 mb-2">Phương trình hóa học:</h3>
-          <div className="bg-white px-3 py-2 rounded-lg border border-amber-100 text-center text-lg font-mono font-bold text-slate-800 shadow-sm mb-3">
-            Fe + 2HCl → FeCl₂ + H₂↑
-          </div>
-          <div className="text-sm text-amber-700 space-y-1">
-            <p><strong>Hiện tượng:</strong></p>
-            <ul className="list-disc pl-5">
-              <li>Mẩu sắt tan dần.</li>
-              <li>Có bọt khí không màu (H₂) thoát ra.</li>
-              <li>Dung dịch chuyển sang màu lục nhạt (FeCl₂).</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* CỘT GIỮA: Khu vực mô phỏng */}
-      <div className="w-full md:w-2/4 lg:w-6/12 flex flex-col relative bg-blue-50/50">
+      {/* 1. KHU VỰC MÔ PHỎNG (Luôn ưu tiên hiển thị trên cùng ở Mobile) */}
+      <div className="order-1 md:order-2 w-full md:w-2/4 lg:w-6/12 flex flex-col relative bg-blue-50/50 min-h-[50dvh] md:h-full shrink-0">
+        
         {/* Banner thông báo */}
-        <div className="absolute top-6 left-1/2 -translate-x-1/2 w-11/12 max-w-md z-20">
-          <div className={`flex items-center gap-3 p-4 rounded-2xl shadow-lg border transition-all transform duration-300 ${
+        <div className="absolute top-4 md:top-6 left-1/2 -translate-x-1/2 w-[95%] md:w-11/12 max-w-md z-30">
+          <div className={`flex items-start md:items-center gap-2 md:gap-3 p-3 md:p-4 rounded-xl md:rounded-2xl shadow-lg border transition-all transform duration-300 ${
             message.type === 'success' ? 'bg-green-100 border-green-300 text-green-800' :
             message.type === 'warning' ? 'bg-orange-100 border-orange-300 text-orange-800' :
             'bg-white border-blue-200 text-blue-800'
           }`}>
-            {message.type === 'warning' ? <AlertCircle className="w-6 h-6 shrink-0" /> : <Info className="w-6 h-6 shrink-0" />}
-            <p className="font-medium">{message.text}</p>
+            {message.type === 'warning' ? <AlertCircle className="w-5 h-5 md:w-6 md:h-6 shrink-0 mt-0.5 md:mt-0" /> : <Info className="w-5 h-5 md:w-6 md:h-6 shrink-0 mt-0.5 md:mt-0" />}
+            <p className="font-medium text-sm md:text-base leading-tight">{message.text}</p>
           </div>
         </div>
 
         {/* Nút Reset */}
         <button 
           onClick={resetExperiment}
-          className="absolute top-6 right-6 z-20 bg-white hover:bg-slate-100 text-slate-600 p-3 rounded-full shadow-md border border-slate-200 transition-all active:scale-95 flex items-center gap-2 group"
+          className="absolute top-4 md:top-6 right-4 md:right-6 z-30 bg-white hover:bg-slate-100 text-slate-600 p-2.5 md:p-3 rounded-full shadow-md border border-slate-200 transition-all active:scale-95 flex items-center gap-2 group"
           title="Làm lại thí nghiệm"
         >
           <RefreshCw className="w-5 h-5 group-hover:-rotate-180 transition-transform duration-500" />
           <span className="hidden lg:inline font-medium pr-1">Làm lại</span>
         </button>
 
-        {/* Phương trình hóa học nổi lên giữa màn hình khi phản ứng */}
+        {/* Phương trình hóa học nổi lên khi phản ứng */}
         {isReacting && (
-          <div className="absolute top-32 w-full flex justify-center z-30 pointer-events-none">
-            <div className="bg-white/95 backdrop-blur-sm px-8 py-4 rounded-2xl shadow-2xl border-2 border-emerald-400 text-center animate-fade-in-down">
-              <span className="block text-sm text-emerald-600 font-bold mb-2 uppercase tracking-widest">Phương trình phản ứng</span>
-              <span className="text-2xl md:text-3xl font-mono font-bold text-slate-800">Fe + 2HCl → FeCl₂ + H₂↑</span>
+          <div className="absolute top-24 md:top-32 w-full flex justify-center z-20 pointer-events-none px-4">
+            <div className="bg-white/95 backdrop-blur-sm px-4 md:px-8 py-3 md:py-4 rounded-2xl shadow-2xl border-2 border-emerald-400 text-center animate-fade-in-down w-full max-w-md">
+              <span className="block text-xs md:text-sm text-emerald-600 font-bold mb-1 md:mb-2 uppercase tracking-widest">Phương trình phản ứng</span>
+              <span className="text-xl md:text-3xl font-mono font-bold text-slate-800">Fe + 2HCl → FeCl₂ + H₂↑</span>
             </div>
           </div>
         )}
 
         {/* Không gian bàn thí nghiệm */}
         <div 
-          className="flex-1 relative flex items-end justify-center pb-[15vh]"
+          className="flex-1 relative flex items-end justify-center pb-[10vh] md:pb-[15vh]"
           onDragOver={onDragOver}
           onDrop={onDrop}
         >
-          {/* Bàn */}
-          <div className="absolute bottom-0 w-full h-[25vh] bg-gradient-to-b from-slate-300 to-slate-400 border-t-8 border-slate-400 shadow-[inset_0_20px_20px_rgba(0,0,0,0.05)]"></div>
+          {/* Mặt bàn */}
+          <div className="absolute bottom-0 w-full h-[15vh] md:h-[25vh] bg-gradient-to-b from-slate-300 to-slate-400 border-t-4 md:border-t-8 border-slate-400 shadow-[inset_0_20px_20px_rgba(0,0,0,0.05)]"></div>
 
           {/* Vùng tương tác & Giá đỡ */}
-          <div className="relative z-10 w-64 h-80 flex flex-col items-center justify-end">
+          <div className="relative z-10 w-48 md:w-64 h-64 md:h-80 flex flex-col items-center justify-end transform origin-bottom scale-90 md:scale-100">
             
-            {/* Giá đỡ ống nghiệm (Luôn hiển thị) */}
-            <div className="absolute bottom-0 w-48 h-16 bg-amber-800 rounded-lg shadow-xl flex items-center justify-center border-t border-amber-700">
-              <div className="w-40 h-4 bg-amber-900 rounded-full opacity-50"></div>
+            {/* Giá đỡ ống nghiệm */}
+            <div className="absolute bottom-0 w-40 md:w-48 h-12 md:h-16 bg-amber-800 rounded-lg shadow-xl flex items-center justify-center border-t border-amber-700">
+              <div className="w-32 md:w-40 h-3 md:h-4 bg-amber-900 rounded-full opacity-50"></div>
               {/* Cọc giữ ống */}
-              <div className="absolute bottom-16 w-4 h-24 bg-amber-800 rounded-t-sm border-r border-amber-900 -ml-12"></div>
-              <div className="absolute bottom-16 w-4 h-24 bg-amber-800 rounded-t-sm border-r border-amber-900 ml-12"></div>
-              <div className="absolute bottom-32 w-40 h-6 bg-amber-800 rounded-md shadow-md flex justify-center items-center">
-                <div className="w-12 h-12 bg-amber-900/50 rounded-full border-2 border-amber-900 shadow-inner"></div>
+              <div className="absolute bottom-12 md:bottom-16 w-3 md:w-4 h-20 md:h-24 bg-amber-800 rounded-t-sm border-r border-amber-900 -ml-10 md:-ml-12"></div>
+              <div className="absolute bottom-12 md:bottom-16 w-3 md:w-4 h-20 md:h-24 bg-amber-800 rounded-t-sm border-r border-amber-900 ml-10 md:ml-12"></div>
+              <div className="absolute bottom-24 md:bottom-32 w-32 md:w-40 h-5 md:h-6 bg-amber-800 rounded-md shadow-md flex justify-center items-center">
+                <div className="w-10 md:w-12 h-10 md:h-12 bg-amber-900/50 rounded-full border-2 border-amber-900 shadow-inner"></div>
               </div>
             </div>
 
             {/* Ống nghiệm */}
             {hasTube && (
-              <div className="relative z-20 w-14 h-64 glass-effect rounded-b-full rounded-t-sm mb-4 flex flex-col justify-end overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.2)]">
+              <div className="relative z-20 w-12 md:w-14 h-48 md:h-64 glass-effect rounded-b-full rounded-t-sm mb-3 md:mb-4 flex flex-col justify-end overflow-hidden shadow-[0_10px_20px_rgba(0,0,0,0.2)]">
                 {/* Miệng ống */}
-                <div className="absolute top-0 w-full h-3 bg-white/40 border-b border-white/50 rounded-t-sm"></div>
+                <div className="absolute top-0 w-full h-2 md:h-3 bg-white/40 border-b border-white/50 rounded-t-sm"></div>
                 
                 {/* Dung dịch */}
                 <div className={`relative w-full transition-all duration-1000 ease-in-out flex flex-col justify-end
-                  ${hasHCl ? 'h-32' : 'h-0'} 
+                  ${hasHCl ? 'h-24 md:h-32' : 'h-0'} 
                   ${isReacting ? 'bg-emerald-200/60' : 'bg-sky-100/40'}
                 `}>
-                  {/* Bề mặt dung dịch */}
-                  {hasHCl && <div className="absolute top-0 w-full h-2 bg-white/40 rounded-full transform -translate-y-1/2"></div>}
-                  
-                  {/* Bọt khí */}
+                  {hasHCl && <div className="absolute top-0 w-full h-1.5 md:h-2 bg-white/40 rounded-full transform -translate-y-1/2"></div>}
                   {isReacting && <Bubbles />}
-                  
-                  {/* Mẩu sắt */}
                   {hasFe && (
-                    <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
-                      <SvgIron className={`w-8 h-8 transition-all duration-[10000ms] ${isReacting ? 'scale-75 opacity-80' : ''}`} />
+                    <div className="absolute bottom-2 md:bottom-3 left-1/2 -translate-x-1/2">
+                      <SvgIron className={`w-6 h-6 md:w-8 md:h-8 transition-all duration-[10000ms] ${isReacting ? 'scale-75 opacity-80' : ''}`} />
                     </div>
                   )}
                 </div>
 
-                {/* Phản chiếu ánh sáng trên ống nghiệm */}
-                <div className="absolute top-4 left-2 w-2 h-48 bg-white/30 rounded-full blur-[1px]"></div>
+                {/* Phản chiếu ánh sáng */}
+                <div className="absolute top-3 md:top-4 left-1.5 md:left-2 w-1.5 md:w-2 h-36 md:h-48 bg-white/30 rounded-full blur-[1px]"></div>
               </div>
             )}
 
             {/* Hint thả ống nghiệm */}
             {!hasTube && (
-              <div className="absolute z-30 bottom-24 w-12 h-48 border-4 border-dashed border-slate-400 rounded-b-full rounded-t-sm flex items-center justify-center animate-pulse">
-                <span className="text-slate-400 font-bold text-xl">+</span>
+              <div className="absolute z-30 bottom-16 md:bottom-24 w-10 md:w-12 h-36 md:h-48 border-[3px] md:border-4 border-dashed border-slate-400 rounded-b-full rounded-t-sm flex items-center justify-center animate-pulse">
+                <span className="text-slate-400 font-bold text-lg md:text-xl">+</span>
               </div>
             )}
           </div>
         </div>
       </div>
 
-      {/* CỘT PHẢI: Dụng cụ - Hóa chất */}
-      <div className="w-full md:w-1/4 lg:w-3/12 bg-white shadow-xl z-10 flex flex-col p-6 border-l border-slate-200">
-        <div className="flex items-center gap-2 mb-6 text-indigo-700">
-          <FlaskConical className="w-6 h-6" />
-          <h2 className="text-xl font-bold uppercase tracking-wide">Dụng cụ & Hóa chất</h2>
+      {/* 2. DỤNG CỤ & HÓA CHẤT (Nằm giữa trên Mobile để dễ chạm nhất) */}
+      <div className="order-2 md:order-3 w-full md:w-1/4 lg:w-3/12 bg-white flex flex-col p-4 md:p-6 shadow-[0_-5px_15px_rgba(0,0,0,0.05)] md:shadow-xl z-20 md:border-l border-slate-200 shrink-0">
+        <div className="flex items-center gap-2 mb-3 md:mb-6 text-indigo-700">
+          <FlaskConical className="w-5 h-5 md:w-6 md:h-6" />
+          <h2 className="text-base md:text-xl font-bold uppercase tracking-wide">Dụng cụ</h2>
         </div>
         
-        <p className="text-sm text-slate-500 mb-6 flex items-center gap-2 bg-slate-50 p-3 rounded-lg border border-slate-100">
-          <MousePointer2 className="w-4 h-4 shrink-0" />
-          Kéo thả hoặc nhấn vào từng mục dưới đây để thực hiện thí nghiệm.
+        <p className="text-xs md:text-sm text-slate-500 mb-4 flex items-center gap-2 bg-indigo-50/50 p-2 md:p-3 rounded-lg border border-indigo-100">
+          <Touchpad className="w-4 h-4 md:w-5 md:h-5 shrink-0 text-indigo-400" />
+          Chạm (trên điện thoại) hoặc kéo thả dụng cụ lên trên.
         </p>
 
-        <div className="space-y-4">
+        {/* Danh sách vuốt ngang trên Mobile, dọc trên Desktop */}
+        <div className="flex flex-row md:flex-col gap-3 overflow-x-auto snap-x snap-mandatory hide-scrollbar pb-2 md:pb-0">
           {tools.map((tool) => (
             <div 
               key={tool.id}
               draggable
               onDragStart={(e) => onDragStart(e, tool.id)}
               onClick={() => handleInteraction(tool.id)}
-              className="group relative flex items-center gap-4 p-4 bg-white border-2 border-slate-100 hover:border-indigo-300 rounded-2xl cursor-pointer hover:shadow-lg transition-all transform hover:-translate-y-1"
+              className="group relative flex flex-row items-center gap-3 p-3 md:p-4 bg-white border-2 border-slate-100 hover:border-indigo-300 active:border-indigo-400 active:bg-indigo-50/30 rounded-2xl cursor-pointer hover:shadow-md transition-all shrink-0 w-[75%] md:w-full snap-center select-none"
             >
-              <div className="w-16 h-16 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 transition-colors">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-slate-50 rounded-xl flex items-center justify-center group-hover:bg-indigo-50 transition-colors shrink-0">
                 {tool.icon}
               </div>
-              <div>
-                <h4 className="font-bold text-slate-800">{tool.name}</h4>
-                <p className="text-xs text-slate-500 mt-1">{tool.desc}</p>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-slate-800 text-sm md:text-base truncate">{tool.name}</h4>
+                <p className="text-xs text-slate-500 mt-0.5 md:mt-1 truncate">{tool.desc}</p>
               </div>
               
               {/* Trạng thái đã sử dụng */}
               {((tool.id === 'tube' && hasTube) || 
                 (tool.id === 'hcl' && hasHCl) || 
                 (tool.id === 'fe' && hasFe)) && (
-                <div className="absolute top-2 right-2 bg-green-100 text-green-600 rounded-full p-1">
-                  <CheckCircle2 className="w-4 h-4" />
+                <div className="absolute top-2 right-2 md:top-3 md:right-3 bg-green-100 text-green-600 rounded-full p-1 shadow-sm">
+                  <CheckCircle2 className="w-3 h-3 md:w-4 md:h-4" />
                 </div>
               )}
             </div>
           ))}
         </div>
       </div>
+
+      {/* 3. HƯỚNG DẪN - LÝ THUYẾT (Nằm dưới cùng trên Mobile, cột trái trên Desktop) */}
+      <div className="order-3 md:order-1 w-full md:w-1/4 lg:w-3/12 bg-white flex flex-col p-4 md:p-6 md:border-r border-slate-200 overflow-y-auto shrink-0 border-t md:border-t-0">
+        <div className="flex items-center gap-2 mb-4 md:mb-6 text-blue-700">
+          <Info className="w-5 h-5 md:w-6 md:h-6" />
+          <h2 className="text-base md:text-xl font-bold uppercase tracking-wide">Hướng dẫn</h2>
+        </div>
+
+        <div className="space-y-3 md:space-y-4 mb-6">
+          <ul className="space-y-2 md:space-y-3">
+            <li className={`flex items-start gap-2.5 md:gap-3 p-2 rounded-lg transition-colors text-sm md:text-base ${hasTube ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+              <CheckCircle2 className={`w-4 h-4 md:w-5 md:h-5 mt-0.5 shrink-0 ${hasTube ? 'text-green-500' : 'text-slate-300'}`} />
+              <span>1. Chuẩn bị ống nghiệm.</span>
+            </li>
+            <li className={`flex items-start gap-2.5 md:gap-3 p-2 rounded-lg transition-colors text-sm md:text-base ${hasHCl ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+              <CheckCircle2 className={`w-4 h-4 md:w-5 md:h-5 mt-0.5 shrink-0 ${hasHCl ? 'text-green-500' : 'text-slate-300'}`} />
+              <span>2. Cho dung dịch HCl vào.</span>
+            </li>
+            <li className={`flex items-start gap-2.5 md:gap-3 p-2 rounded-lg transition-colors text-sm md:text-base ${hasFe ? 'bg-green-50 text-green-700' : 'bg-slate-50'}`}>
+              <CheckCircle2 className={`w-4 h-4 md:w-5 md:h-5 mt-0.5 shrink-0 ${hasFe ? 'text-green-500' : 'text-slate-300'}`} />
+              <span>3. Thả mẩu sắt (Fe) vào.</span>
+            </li>
+            <li className={`flex items-start gap-2.5 md:gap-3 p-2 rounded-lg transition-colors text-sm md:text-base ${isReacting ? 'bg-blue-50 text-blue-700 font-medium' : 'bg-slate-50'}`}>
+              <div className={`w-4 h-4 md:w-5 md:h-5 mt-0.5 rounded-full border-[1.5px] md:border-2 shrink-0 flex items-center justify-center ${isReacting ? 'border-blue-500 bg-blue-500 text-white' : 'border-slate-300'}`}>
+                {isReacting && <span className="w-1.5 h-1.5 md:w-2 md:h-2 bg-white rounded-full"></span>}
+              </div>
+              <span>4. Quan sát hiện tượng.</span>
+            </li>
+          </ul>
+        </div>
+
+        <div className="mt-auto bg-amber-50 p-3 md:p-4 rounded-xl border border-amber-200">
+          <h3 className="text-sm md:text-base font-bold text-amber-800 mb-2">Hiện tượng:</h3>
+          <div className="text-xs md:text-sm text-amber-700 space-y-1">
+            <ul className="list-disc pl-4 md:pl-5">
+              <li>Mẩu sắt tan dần.</li>
+              <li>Có bọt khí không màu (H₂) thoát ra.</li>
+              <li>Dung dịch chuyển sang màu lục nhạt.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
